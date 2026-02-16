@@ -1,0 +1,85 @@
+﻿@import "tailwindcss";
+
+/*  Custom Theme  */
+@theme {
+  --color-dark-900: #050505;
+  --color-dark-800: #0a0a0a;
+  --color-dark-700: #121212;
+  --color-dark-600: #1c1c1c;
+  --color-accent: #6366f1;
+  --color-accent-light: #a5b4fc;
+  --color-cyan: #06b6d4;
+  --font-sans: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  
+  --animate-grain: grain 8s steps(10) infinite;
+  --animate-float: float 10s ease-in-out infinite;
+}
+
+/*  Base Styles  */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    cursor: none;
+  }
+  
+  body {
+    @apply bg-dark-900 text-slate-300 font-sans antialiased overflow-x-hidden selection:bg-accent/30 selection:text-white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-accent/50 transition-colors;
+  }
+}
+
+/*  Utilities  */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent;
+  }
+  
+  .glass {
+    @apply backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+  }
+
+  /* Noise Overlay */
+  .noise-bg {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200vh;
+    background: transparent url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0;
+    background-repeat: repeat;
+    animation: grain 8s steps(10) infinite;
+    opacity: 0.04;
+    z-index: 50;
+    pointer-events: none;
+  }
+}
+
+/*  Animations  */
+@keyframes grain {
+  0%, 100% { transform:translate(0, 0) }
+  10% { transform:translate(-5%, -10%) }
+  20% { transform:translate(-15%, 5%) }
+  30% { transform:translate(7%, -25%) }
+  40% { transform:translate(-5%, 25%) }
+  50% { transform:translate(-15%, 10%) }
+  60% { transform:translate(15%, 0%) }
+  70% { transform:translate(0%, 15%) }
+  80% { transform:translate(3%, 35%) }
+  90% { transform:translate(-10%, 10%) }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
