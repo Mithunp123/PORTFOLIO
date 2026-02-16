@@ -1,5 +1,5 @@
-import React, { useRef, useMemo, Suspense, useState, useCallback } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html, Stars, Line } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -238,7 +238,7 @@ function OrbitingIcon({ skill, orbitRadius, orbitSpeed, orbitTiltX, orbitTiltZ, 
       <group ref={groupRef}>
         <Html
           center
-          distanceFactor={10}
+          distanceFactor={12}
           zIndexRange={[100, 0]}
           occlude={false}
           style={{ pointerEvents: 'auto' }}
@@ -251,8 +251,8 @@ function OrbitingIcon({ skill, orbitRadius, orbitSpeed, orbitTiltX, orbitTiltZ, 
             <div
               className="relative flex items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300"
               style={{
-                width: hovered ? 52 : 40,
-                height: hovered ? 52 : 40,
+                width: hovered ? 90 : 72,
+                height: hovered ? 90 : 72,
                 background: hovered
                   ? `radial-gradient(circle, ${skill.color}22, rgba(0,0,0,0.6))`
                   : 'rgba(255,255,255,0.03)',
@@ -267,8 +267,8 @@ function OrbitingIcon({ skill, orbitRadius, orbitSpeed, orbitTiltX, orbitTiltZ, 
                 src={skill.icon}
                 alt={skill.name}
                 style={{
-                  width: hovered ? 28 : 22,
-                  height: hovered ? 28 : 22,
+                  width: hovered ? 60 : 48,
+                  height: hovered ? 60 : 48,
                   filter: hovered ? 'grayscale(0%)' : 'grayscale(100%)',
                   opacity: hovered ? 1 : 0.8
                 }}
@@ -279,7 +279,7 @@ function OrbitingIcon({ skill, orbitRadius, orbitSpeed, orbitTiltX, orbitTiltZ, 
             <span
               className="font-mono font-bold tracking-wider uppercase whitespace-nowrap transition-all duration-300"
               style={{
-                fontSize: 8,
+                fontSize: 10,
                 color: hovered ? skill.color : 'rgba(255,255,255,0.4)',
                 textShadow: hovered ? `0 0 8px ${skill.color}88` : 'none',
               }}
@@ -321,6 +321,44 @@ function OrbitingIcons() {
       ))}
     </group>
   )
+}
+
+// ─── CAMERA ADJUSTER FOR RESPONSIVENESS ───
+function CameraAdjuster() {
+  const { camera, size } = useThree()
+
+  useEffect(() => {
+    // Current Globe Setup:
+    // Max orbit radius is roughly 5.2
+    // We need to ensure this fits within the camera frustum width
+    const aspect = size.width / size.height
+    
+
+    // We want visibleWidth to be at least (Radius * 2 + padding)
+    // 5.2 * 2 = 10.4, plus adequate padding => ~12 units for bigger view
+    const targetWidth = 11.5 
+
+    if (aspect < 1) {
+       // Mobile / Portrait:
+       // visibleWidth = 2 * dist * tan(FOV/2) * aspect
+       // dist = visibleWidth / (2 * tan(FOV/2) * aspect)
+       
+       const fovRad = (camera.fov * Math.PI) / 180
+       const requiredDist = targetWidth / (2 * Math.tan(fovRad / 2) * aspect)
+       
+       // Smoothly set camera Z, ensuring we don't go closer than default 16
+       camera.position.z = Math.max(16, requiredDist)
+    } else {
+       // Desktop / Landscape:
+       // The default Z=16 is usually good for desktop, 
+       // but we can ensure it's reset if resizing back from mobile.
+       camera.position.z = 16
+    }
+    
+    camera.updateProjectionMatrix()
+  }, [camera, size])
+
+  return null
 }
 
 // ─── MASTER ROTATING GROUP ───
@@ -372,6 +410,7 @@ export default function Skills() {
           gl={{ antialias: true, alpha: false }}
           style={{ background: '#050505', width: '100%', height: '100%' }}
         >
+          <CameraAdjuster />
           <fog attach="fog" args={['#050505', 14, 40]} />
 
           <ambientLight intensity={0.4} />
