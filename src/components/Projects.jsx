@@ -37,7 +37,7 @@ const PROJECTS = [
     stack: ['Python', 'GPU Training', 'Three.js', 'Spotify API'],
     image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
     type: 'AI / Game Dev',
-    award: 'Hackathon Win',
+    award: '',
     icon: <Cpu size={20} />
   },
   {
