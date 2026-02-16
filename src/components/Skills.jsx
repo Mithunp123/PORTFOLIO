@@ -1,455 +1,215 @@
-import React, { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, Stars, Line } from '@react-three/drei'
-import * as THREE from 'three'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { Code2, Terminal } from 'lucide-react'
 
-// ─── SKILLS DATA ───
-const SKILLS = [
-  { name: 'Python',     icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',   color: '#3776AB' },
-  { name: 'React',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',     color: '#61DAFB' },
-  { name: 'Power BI',   icon: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/New_Power_BI_Logo.svg',       color: '#F2C811' },
-  { name: 'SQL',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',     color: '#00758F' },
-  { name: 'Java',       icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',       color: '#007396' },
-  { name: 'Git',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',         color: '#F05032' },
-  { name: 'Flask',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg',     color: '#ffffff' },
-  { name: 'Networking', icon: 'https://cdn-icons-png.flaticon.com/512/2885/2885417.png',                         color: '#06b6d4' },
-  { name: 'Twilio',     icon: 'https://creazilla-store.fra1.digitaloceanspaces.com/icons/3254468/twilio-icon-icon-md.png',                         color: '#F22F46' },
-  { name: 'Three.js',   icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg', color: '#ffffff' },
-  { name: 'Supabase',   icon: 'https://img.icons8.com/fluent/1200/supabase.jpg', color: '#3ECF8E' },
+const TECH_STACK = [
+  { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', color: '#3776AB', level: 90 },
+  { name: 'React', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', color: '#61DAFB', level: 85 },
+  { name: 'JavaScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', color: '#F7DF1E', level: 88 },
+  { name: 'Power BI', icon: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/New_Power_BI_Logo.svg', color: '#F2C811', level: 80 },
+  { name: 'SQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', color: '#00758F', level: 85 },
+  { name: 'Java', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg', color: '#007396', level: 75 },
+  { name: 'HTML/CSS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg', color: '#E34F26', level: 90 },
+  { name: 'Tailwind CSS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg', color: '#38BDF8', level: 85 },
+  { name: 'Git', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg', color: '#F05032', level: 80 },
+  { name: 'GitHub', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg', color: '#ffffff', level: 82 },
+  { name: 'Flask', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg', color: '#ffffff', level: 80 },
+  { name: 'Three.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg', color: '#ffffff', level: 70 },
+  { name: 'REST API', icon: 'https://cdn-icons-png.flaticon.com/512/2164/2164832.png', color: '#06b6d4', level: 82 },
+  { name: 'Twilio', icon: 'https://creazilla-store.fra1.digitaloceanspaces.com/icons/3254468/twilio-icon-icon-md.png', color: '#F22F46', level: 65 },
+  { name: 'Supabase', icon: 'https://img.icons8.com/fluent/1200/supabase.jpg', color: '#3ECF8E', level: 70 },
 ]
 
-// ─── Helper: Fibonacci sphere distribution ───
-function fibonacciSphere(count, radius) {
-  const points = []
-  const goldenAngle = Math.PI * (3 - Math.sqrt(5))
-  for (let i = 0; i < count; i++) {
-    const y = 1 - (i / (count - 1)) * 2
-    const r = Math.sqrt(1 - y * y)
-    const theta = goldenAngle * i
-    points.push(new THREE.Vector3(
-      Math.cos(theta) * r * radius,
-      y * radius,
-      Math.sin(theta) * r * radius
-    ))
-  }
-  return points
-}
-
-// ─── ANIMATED WIREFRAME GLOBE ───
-function WireframeGlobe() {
-  const globe1 = useRef()
-  const globe2 = useRef()
-  const globe3 = useRef()
-  const pulseRef = useRef()
-
-  useFrame((state, delta) => {
-    const t = state.clock.elapsedTime
-    // Subtle independent rotations for layered depth effect
-    if (globe1.current) {
-      globe1.current.rotation.y += delta * 0.03
-      globe1.current.rotation.x = Math.sin(t * 0.1) * 0.1
-    }
-    if (globe2.current) {
-      globe2.current.rotation.y -= delta * 0.02
-      globe2.current.rotation.z = Math.cos(t * 0.15) * 0.05
-    }
-    if (globe3.current) {
-      globe3.current.rotation.y += delta * 0.01
-      globe3.current.rotation.x -= delta * 0.005
-    }
-    // Pulsing inner glow
-    if (pulseRef.current) {
-      pulseRef.current.material.opacity = 0.02 + Math.sin(t * 1.5) * 0.015
-    }
-  })
-
+function TechCard({ tech, index }) {
   return (
-    <group>
-      {/* Layer 1: Primary wireframe — fine detail */}
-      <mesh ref={globe1}>
-        <sphereGeometry args={[3.6, 40, 40]} />
-        <meshBasicMaterial color="#6366f1" wireframe transparent opacity={0.12} />
-      </mesh>
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ delay: index * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ 
+        y: -8, 
+        scale: 1.05,
+        transition: { duration: 0.2 }
+      }}
+      className="group relative"
+    >
+      <div className="relative flex flex-col items-center gap-4 p-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.05] overflow-hidden">
+        {/* Hover glow */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at center, ${tech.color}15, transparent 70%)`,
+          }}
+        />
 
-      {/* Layer 2: Secondary wireframe — coarser, cyan tint */}
-      <mesh ref={globe2}>
-        <sphereGeometry args={[3.65, 18, 18]} />
-        <meshBasicMaterial color="#22d3ee" wireframe transparent opacity={0.07} />
-      </mesh>
-
-      {/* Layer 3: Very coarse outer shell */}
-      <mesh ref={globe3}>
-        <sphereGeometry args={[3.7, 10, 10]} />
-        <meshBasicMaterial color="#a78bfa" wireframe transparent opacity={0.05} />
-      </mesh>
-
-      {/* Equator ring - bright */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[3.75, 0.015, 8, 100]} />
-        <meshBasicMaterial color="#6366f1" transparent opacity={0.4} />
-      </mesh>
-
-      {/* Tilted orbit ring 1 */}
-      <mesh rotation={[Math.PI / 2.8, 0.3, 0.5]}>
-        <torusGeometry args={[3.8, 0.01, 8, 80]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.2} />
-      </mesh>
-
-      {/* Tilted orbit ring 2 */}
-      <mesh rotation={[Math.PI / 4, -0.5, 0.2]}>
-        <torusGeometry args={[3.85, 0.008, 8, 80]} />
-        <meshBasicMaterial color="#a78bfa" transparent opacity={0.15} />
-      </mesh>
-
-      {/* Inner glow core */}
-      <mesh ref={pulseRef}>
-        <sphereGeometry args={[3.0, 16, 16]} />
-        <meshBasicMaterial color="#6366f1" transparent opacity={0.03} />
-      </mesh>
-
-      {/* Center bright point */}
-      <mesh>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshBasicMaterial color="#818cf8" transparent opacity={0.6} />
-      </mesh>
-    </group>
-  )
-}
-
-// ─── CONNECTION LINES between icon positions (neural network web) ───
-function ConnectionWeb({ positions }) {
-  // Connect each node to its 2-3 nearest neighbors
-  const lines = useMemo(() => {
-    const result = []
-    for (let i = 0; i < positions.length; i++) {
-      // Sort other points by distance
-      const distances = positions
-        .map((p, j) => ({ index: j, dist: positions[i].distanceTo(p) }))
-        .filter(d => d.index !== i)
-        .sort((a, b) => a.dist - b.dist)
-
-      // Connect to 2 nearest
-      for (let k = 0; k < Math.min(2, distances.length); k++) {
-        const j = distances[k].index
-        // Avoid duplicate lines (only draw if i < j)
-        if (i < j) {
-          result.push({
-            start: positions[i],
-            end: positions[j],
-          })
-        }
-      }
-    }
-    return result
-  }, [positions])
-
-  return (
-    <group>
-      {lines.map((line, i) => {
-        // Create a curved line through the midpoint pushed outward
-        const mid = new THREE.Vector3().addVectors(line.start, line.end).multiplyScalar(0.5)
-        const midLen = mid.length()
-        // Push midpoint outward to create arc along sphere surface
-        mid.normalize().multiplyScalar(midLen * 1.15)
-
-        const curve = new THREE.QuadraticBezierCurve3(line.start, mid, line.end)
-        const curvePoints = curve.getPoints(20)
-
-        return (
-          <line key={`conn-${i}`}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={curvePoints.length}
-                array={new Float32Array(curvePoints.flatMap(p => [p.x, p.y, p.z]))}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial color="#6366f1" transparent opacity={0.12} />
-          </line>
-        )
-      })}
-    </group>
-  )
-}
-
-// ─── ANIMATED PULSE PARTICLES traveling along the globe surface ───
-function PulseParticles() {
-  const count = 60
-  const meshRef = useRef()
-  const dummy = useMemo(() => new THREE.Object3D(), [])
-
-  const particleData = useMemo(() => {
-    return Array.from({ length: count }, () => ({
-      theta: Math.random() * Math.PI * 2,
-      phi: Math.random() * Math.PI,
-      speed: 0.2 + Math.random() * 0.5,
-      radius: 3.6 + Math.random() * 0.3,
-      size: 0.02 + Math.random() * 0.03,
-    }))
-  }, [])
-
-  useFrame((state, delta) => {
-    if (!meshRef.current) return
-    particleData.forEach((p, i) => {
-      p.theta += delta * p.speed
-      const x = p.radius * Math.sin(p.phi) * Math.cos(p.theta)
-      const y = p.radius * Math.cos(p.phi)
-      const z = p.radius * Math.sin(p.phi) * Math.sin(p.theta)
-      dummy.position.set(x, y, z)
-      dummy.scale.setScalar(p.size * (1 + Math.sin(state.clock.elapsedTime * 3 + i) * 0.5))
-      dummy.updateMatrix()
-      meshRef.current.setMatrixAt(i, dummy.matrix)
-    })
-    meshRef.current.instanceMatrix.needsUpdate = true
-  })
-
-  return (
-    <instancedMesh ref={meshRef} args={[null, null, count]}>
-      <sphereGeometry args={[1, 6, 6]} />
-      <meshBasicMaterial color="#22d3ee" transparent opacity={0.6} />
-    </instancedMesh>
-  )
-}
-
-// ─── SINGLE ORBITING SKILL ICON ───
-function OrbitingIcon({ skill, orbitRadius, orbitSpeed, orbitTiltX, orbitTiltZ, startAngle }) {
-  const groupRef = useRef()
-  const [hovered, setHovered] = useState(false)
-
-  useFrame((state) => {
-    if (!groupRef.current) return
-    const t = state.clock.elapsedTime
-    const angle = startAngle + t * orbitSpeed
-    const x = Math.cos(angle) * orbitRadius
-    const z = Math.sin(angle) * orbitRadius
-    groupRef.current.position.set(x, 0, z)
-  })
-
-  return (
-    <group rotation={[orbitTiltX, 0, orbitTiltZ]}>
-      {/* Orbit ring trail — bright, colored per skill */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[orbitRadius, 0.012, 8, 120]} />
-        <meshBasicMaterial color={skill.color} transparent opacity={0.35} />
-      </mesh>
-
-      {/* The moving icon */}
-      <group ref={groupRef}>
-        <Html
-          center
-          distanceFactor={12}
-          zIndexRange={[100, 0]}
-          occlude={false}
-          style={{ pointerEvents: 'auto' }}
+        {/* Icon */}
+        <div 
+          className="relative w-20 h-20 flex items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110"
+          style={{
+            background: `linear-gradient(135deg, ${tech.color}10, transparent)`,
+          }}
         >
-          <div
-            className="flex flex-col items-center gap-1 select-none cursor-pointer"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-          >
-            <div
-              className="relative flex items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300"
-              style={{
-                width: hovered ? 90 : 72,
-                height: hovered ? 90 : 72,
-                background: hovered
-                  ? `radial-gradient(circle, ${skill.color}22, rgba(0,0,0,0.6))`
-                  : 'rgba(255,255,255,0.03)',
-                border: `1.5px solid ${hovered ? skill.color : 'rgba(255,255,255,0.1)'}`,
-                boxShadow: hovered
-                  ? `0 0 25px ${skill.color}44, inset 0 0 15px ${skill.color}11`
-                  : '0 0 8px rgba(0,0,0,0.4)',
-                transform: hovered ? 'scale(1.15)' : 'scale(1)',
-              }}
-            >
-              <img
-                src={skill.icon}
-                alt={skill.name}
+          <img
+            src={tech.icon}
+            alt={tech.name}
+            className="w-12 h-12 object-contain transition-all duration-300"
+            style={{
+              filter: 'grayscale(70%) brightness(0.8)',
+            }}
+            onMouseEnter={(e) => e.target.style.filter = 'grayscale(0%) brightness(1.1)'}
+            onMouseLeave={(e) => e.target.style.filter = 'grayscale(70%) brightness(0.8)'}
+          />
+        </div>
+
+        {/* Tech name */}
+        <div className="text-center relative z-10">
+          <h4 className="text-sm font-bold text-white/80 mb-2 group-hover:text-white transition-colors duration-300">
+            {tech.name}
+          </h4>
+          
+          {/* Proficiency bar */}
+          <div className="flex items-center gap-2 justify-center">
+            <div className="h-1.5 w-20 rounded-full bg-white/5 overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                initial={{ width: 0 }}
+                whileInView={{ width: `${tech.level}%` }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 + 0.3, duration: 0.8, ease: 'easeOut' }}
                 style={{
-                  width: hovered ? 60 : 48,
-                  height: hovered ? 60 : 48,
-                  filter: hovered ? 'grayscale(0%)' : 'grayscale(100%)',
-                  opacity: hovered ? 1 : 0.8
+                  background: `linear-gradient(90deg, ${tech.color}, ${tech.color}CC)`,
+                  boxShadow: `0 0 10px ${tech.color}40`,
                 }}
-                className="object-contain drop-shadow-lg transition-all duration-300"
-                draggable={false}
               />
             </div>
-            <span
-              className="font-mono font-bold tracking-wider uppercase whitespace-nowrap transition-all duration-300"
-              style={{
-                fontSize: 10,
-                color: hovered ? skill.color : 'rgba(255,255,255,0.4)',
-                textShadow: hovered ? `0 0 8px ${skill.color}88` : 'none',
-              }}
+            <span 
+              className="text-[10px] font-mono font-bold text-white/30 group-hover:text-white/60 transition-colors duration-300"
             >
-              {skill.name}
+              {tech.level}%
             </span>
           </div>
-        </Html>
-      </group>
-    </group>
-  )
-}
-
-// ─── ALL ORBITING ICONS ───
-function OrbitingIcons() {
-  // Each icon gets a unique orbit: radius, tilt, speed, start angle
-  const orbits = useMemo(() => {
-    return SKILLS.map((skill, i) => {
-      const count = SKILLS.length
-      // Distribute orbits evenly around the sphere to avoiding clumping
-      // We use the golden angle for Z-rotation to ensure they don't overlap
-      return {
-        skill,
-        orbitRadius: 4.2 + (i % 2) * 1.0,           // 2 distinct orbital shells: 4.2 and 5.2
-        orbitSpeed: 0.2 + (Math.random() * 0.1),       // Randomized speeds
-        // Tilt X: Spread from -45 to +45 degrees
-        orbitTiltX: (Math.random() * Math.PI) - (Math.PI / 2), 
-        // Tilt Z: Full 360 degree coverage using golden ratio to prevent alignment
-        orbitTiltZ: i * Math.PI * 0.76, 
-        startAngle: Math.random() * Math.PI * 2,       // Totally random start position
-      }
-    })
-  }, [])
-
-  return (
-    <group>
-      {orbits.map((o) => (
-        <OrbitingIcon key={o.skill.name} {...o} />
-      ))}
-    </group>
-  )
-}
-
-// ─── CAMERA ADJUSTER FOR RESPONSIVENESS ───
-function CameraAdjuster() {
-  const { camera, size } = useThree()
-
-  useEffect(() => {
-    // Current Globe Setup:
-    // Max orbit radius is roughly 5.2
-    // We need to ensure this fits within the camera frustum width
-    const aspect = size.width / size.height
-    
-
-    // We want visibleWidth to be at least (Radius * 2 + padding)
-    // 5.2 * 2 = 10.4, plus adequate padding => ~12 units for bigger view
-    const targetWidth = 11.5 
-
-    if (aspect < 1) {
-       // Mobile / Portrait:
-       // visibleWidth = 2 * dist * tan(FOV/2) * aspect
-       // dist = visibleWidth / (2 * tan(FOV/2) * aspect)
-       
-       const fovRad = (camera.fov * Math.PI) / 180
-       const requiredDist = targetWidth / (2 * Math.tan(fovRad / 2) * aspect)
-       
-       // Smoothly set camera Z, ensuring we don't go closer than default 16
-       camera.position.z = Math.max(16, requiredDist)
-    } else {
-       // Desktop / Landscape:
-       // The default Z=16 is usually good for desktop, 
-       // but we can ensure it's reset if resizing back from mobile.
-       camera.position.z = 16
-    }
-    
-    camera.updateProjectionMatrix()
-  }, [camera, size])
-
-  return null
-}
-
-// ─── MASTER ROTATING GROUP ───
-function SkillsOrbit() {
-  const groupRef = useRef()
-
-  useFrame((_, delta) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.12
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      <WireframeGlobe />
-      <PulseParticles />
-      <OrbitingIcons />
-    </group>
-  )
-}
-
-// ─── MAIN EXPORT ───
-export default function Skills() {
-  return (
-    <section
-      id="skills"
-      className="relative w-full bg-dark-900 overflow-hidden z-10"
-      style={{ height: '100vh', minHeight: '850px', maxHeight: '1100px' }}
-    >
-      {/* Header — positioned at the very top, separate from canvas */}
-      <div className="absolute top-8 left-0 right-0 z-30 text-center pointer-events-none">
-        <p className="text-[10px] text-accent/50 font-mono tracking-[0.4em] uppercase mb-1">
-          // what I work with
-        </p>
-        <h2 className="text-3xl md:text-4xl font-black tracking-tighter">
-          <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/30">
-            TECH
-          </span>{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6366f1] via-[#818cf8] to-[#22d3ee]">
-            STACK
-          </span>
-        </h2>
-      </div>
-
-      {/* 3D Canvas — fills entire section, orbits have full room */}
-      <div className="absolute inset-0 overflow-hidden">
-        <Canvas
-          camera={{ position: [0, 0, 16], fov: 45 }}
-          gl={{ antialias: true, alpha: false }}
-          style={{ background: '#050505', width: '100%', height: '100%' }}
-        >
-          <CameraAdjuster />
-          <fog attach="fog" args={['#050505', 14, 40]} />
-
-          <ambientLight intensity={0.4} />
-          <pointLight position={[10, 10, 10]} intensity={1.2} color="#6366f1" />
-          <pointLight position={[-10, -8, -10]} intensity={0.8} color="#22d3ee" />
-
-          <Suspense
-            fallback={
-              <Html center>
-                <div className="text-accent font-mono text-xs tracking-widest animate-pulse">
-                  LOADING...
-                </div>
-              </Html>
-            }
-          >
-            <Stars radius={80} depth={60} count={3000} factor={3} saturation={0} fade speed={0.6} />
-            <group position={[0, -1.0, 0]}>
-              <SkillsOrbit />
-            </group>
-          </Suspense>
-
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            minPolarAngle={Math.PI / 4}
-            maxPolarAngle={Math.PI / 1.5}
-            rotateSpeed={0.4}
-          />
-        </Canvas>
-      </div>
-
-      {/* Footer status */}
-      <div className="absolute bottom-8 left-8 z-10 flex flex-col gap-1 pointer-events-none">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
-          <span className="text-[10px] text-white/25 font-mono tracking-widest">
-            {SKILLS.length} MODULES LOADED
-          </span>
         </div>
+
+        {/* Corner accent */}
+        <div 
+          className="absolute top-0 right-0 w-16 h-16 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+          style={{
+            background: `linear-gradient(135deg, ${tech.color}, transparent)`,
+            borderRadius: '0 1rem 0 0',
+          }}
+        />
+      </div>
+    </motion.div>
+  )
+}
+
+export default function Skills() {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+
+  return (
+    <section id="skills" className="relative w-full overflow-hidden py-32 sm:py-40">
+      {/* Background gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%)' }}
+          animate={{ 
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.12), transparent 70%)' }}
+          animate={{ 
+            scale: [1, 1.3, 1],
+            x: [0, -60, 0],
+            y: [0, 40, 0],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+
+      <div ref={ref} className="relative z-10 max-w-7xl mx-auto px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="h-px flex-1 max-w-xs bg-gradient-to-r from-transparent via-cyan/30 to-transparent" />
+            <div className="flex items-center gap-2">
+              <Terminal size={16} className="text-cyan" />
+              <span className="text-[11px] font-mono text-cyan/70 tracking-[0.4em] uppercase">
+                TECH STACK
+              </span>
+              <Code2 size={16} className="text-accent" />
+            </div>
+            <div className="h-px flex-1 max-w-xs bg-gradient-to-r from-transparent via-cyan/30 to-transparent" />
+          </div>
+          
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-6">
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/95 to-white/60">
+              Technologies{' '}
+            </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-cyan to-purple-400">
+              & Tools
+            </span>
+          </h2>
+          
+          <p className="text-base text-slate-500 max-w-2xl mx-auto leading-relaxed">
+            A curated collection of technologies I work with to build{' '}
+            <strong className="text-slate-400">modern, scalable applications</strong>
+          </p>
+        </motion.div>
+
+        {/* Tech Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          {TECH_STACK.map((tech, index) => (
+            <TechCard key={tech.name} tech={tech} index={index} />
+          ))}
+        </div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="mt-20 flex flex-wrap justify-center gap-12 pt-12 border-t border-white/5"
+        >
+          {[
+            { label: 'TECHNOLOGIES', value: TECH_STACK.length, color: '#6366f1' },
+            { label: 'AVG PROFICIENCY', value: `${Math.round(TECH_STACK.reduce((sum, t) => sum + t.level, 0) / TECH_STACK.length)}%`, color: '#22d3ee' },
+            { label: 'YEARS CODING', value: '3+', color: '#10b981' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="text-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.7 + i * 0.1 }}
+            >
+              <p
+                className="text-3xl md:text-4xl font-black mb-2"
+                style={{
+                  color: stat.color,
+                  textShadow: `0 0 30px ${stat.color}40`,
+                }}
+              >
+                {stat.value}
+              </p>
+              <p className="text-[10px] text-slate-600 font-mono tracking-[0.3em] uppercase">
+                {stat.label}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )

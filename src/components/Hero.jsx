@@ -44,9 +44,33 @@ export default function Hero() {
             <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-400 drop-shadow-lg">
               MITHUN P.
             </span>
-            <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-light tracking-normal text-slate-400 mt-2">
-              <span className="text-accent italic">Data Analyst</span> & <br className="hidden sm:block" /> Creative Developer
-            </span>
+            <motion.span 
+              className="block text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold tracking-wide mt-2 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              <motion.span
+                className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-accent via-cyan to-accent"
+                style={{ backgroundSize: '200% auto' }}
+                initial={{ clipPath: 'inset(0 100% 0 0)' }}
+                animate={{ 
+                  clipPath: 'inset(0 0% 0 0)',
+                  backgroundPosition: ['0% center', '200% center', '0% center'],
+                }}
+                transition={{
+                  clipPath: { delay: 0.7, duration: 1.2, ease: [0.65, 0, 0.35, 1] },
+                  backgroundPosition: {
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'linear',
+                    delay: 1.9
+                  },
+                }}
+              >
+                Software Developer
+              </motion.span>
+            </motion.span>
           </h1>
           
           <p className="max-w-lg text-lg text-slate-400 leading-relaxed mb-10 border-l-2 border-accent/30 pl-6">

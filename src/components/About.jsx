@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { MapPin, Phone, Mail, Briefcase, Zap } from 'lucide-react'
+import { MapPin, Phone, Mail, Briefcase, Zap, Tv, Gamepad2, Film, Code2, LayoutDashboard, Sparkles, Target } from 'lucide-react'
 
 const DETAILS = [
   { icon: <MapPin size={15} />, label: 'Location', value: 'Erode, Tamil Nadu' },
@@ -14,6 +14,17 @@ const TIMELINE = [
   { year: '2024', event: 'Built Time2Order, Time2Due & Time2Farm platforms' },
   { year: '2025', event: 'Won 2nd Prize — TrueSight AI (Deepfake Detection)' },
   { year: '2026', event: 'Building full-stack apps & exploring advanced AI' },
+]
+
+const HOBBIES = [
+  { icon: <Tv size={20} />, title: 'Web Series', subtitle: 'Game of Thrones', color: '#ef4444' },
+  { icon: <Gamepad2 size={20} />, title: 'Gaming', subtitle: 'Battle Royale Games', color: '#8b5cf6' },
+  { icon: <Film size={20} />, title: 'Movies', subtitle: 'English & Tamil Films', color: '#f59e0b' },
+]
+
+const LEARNING = [
+  { icon: <Code2 size={20} />, title: 'FiveM Development', desc: 'Creating custom game servers & scripts', color: '#22d3ee' },
+  { icon: <LayoutDashboard size={20} />, title: 'Battle Royale Panels', desc: 'Building tournament management systems', color: '#10b981' },
 ]
 
 export default function About() {
@@ -149,6 +160,127 @@ export default function About() {
                   </motion.div>
                 ))}
               </div>
+            </div>
+          </motion.div>
+
+          {/* Hobbies Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="glass rounded-[2rem] p-8 md:col-span-6"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Sparkles size={14} className="text-accent-light" />
+              <h3 className="text-sm font-semibold tracking-wider text-slate-500 uppercase">
+                When I'm Not Coding
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {HOBBIES.map((hobby, i) => (
+                <motion.div
+                  key={hobby.title}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  className="group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:bg-white/[0.02]"
+                  style={{
+                    border: '1px solid rgba(255,255,255,0.04)',
+                  }}
+                  whileHover={{ x: 4 }}
+                >
+                  <div 
+                    className="flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${hobby.color}15, ${hobby.color}05)`,
+                      color: hobby.color,
+                      boxShadow: `0 0 20px ${hobby.color}10`,
+                    }}
+                  >
+                    {hobby.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">{hobby.title}</p>
+                    <p className="text-white font-medium">{hobby.subtitle}</p>
+                  </div>
+                  <div 
+                    className="w-1.5 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: hobby.color }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Learning Path Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="glass rounded-[2rem] p-8 md:col-span-6"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Target size={14} className="text-cyan" />
+              <h3 className="text-sm font-semibold tracking-wider text-slate-500 uppercase">
+                Currently Exploring
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {LEARNING.map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ delay: 0.65 + i * 0.1 }}
+                  className="group relative overflow-hidden rounded-xl p-5 transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.01)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                  }}
+                  whileHover={{ scale: 1.01 }}
+                >
+                  {/* Gradient accent line */}
+                  <div 
+                    className="absolute top-0 left-0 w-full h-[2px]"
+                    style={{ background: `linear-gradient(90deg, ${item.color}, transparent)` }}
+                  />
+                  
+                  <div className="flex items-start gap-4">
+                    <div 
+                      className="flex items-center justify-center w-12 h-12 rounded-xl shrink-0"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${item.color}15, transparent)`,
+                        color: item.color,
+                      }}
+                    >
+                      {item.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-white">{item.title}</p>
+                        <span 
+                          className="px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-full uppercase"
+                          style={{ 
+                            background: `${item.color}15`,
+                            color: item.color,
+                          }}
+                        >
+                          Learning
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500">{item.desc}</p>
+                    </div>
+                  </div>
+
+                  {/* Hover glow */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                    style={{
+                      background: `radial-gradient(circle at 50% 100%, ${item.color}08, transparent 70%)`,
+                    }}
+                  />
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
