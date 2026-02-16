@@ -9,7 +9,8 @@ const PROJECTS = [
     stack: ['Python', 'Flask', 'HTML/CSS/JS', 'SQL'],
     image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
     type: 'Full Stack',
-    icon: <Database size={20} />
+    icon: <Database size={20} />,
+    link: 'https://autorevives.com'
   },
   {
     title: 'Propic',
@@ -18,7 +19,8 @@ const PROJECTS = [
     stack: ['Python', 'Flask', 'HTML/CSS/JS'],
     image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800&q=80',
     type: 'Full Stack',
-    icon: <Layers size={20} />
+    icon: <Layers size={20} />,
+    link: 'https://propic.in'
   },
   {
     title: 'Pashuthalam',
@@ -58,7 +60,11 @@ const PROJECTS = [
     stack: ['Python', 'SQL', 'Cashfree API'],
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
     type: 'Full Stack',
-    icon: <Database size={20} />
+    icon: <Database size={20} />,
+    links: [
+      { label: 'User App', url: 'https://time2order.com' },
+      { label: 'Shop Owner', url: 'https://time2orders.shop' }
+    ]
   },
   {
     title: 'Time2Due',
@@ -67,7 +73,8 @@ const PROJECTS = [
     stack: ['Full Stack', 'Operations', 'Payments'],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
     type: 'Full Stack',
-    icon: <Layers size={20} />
+    icon: <Layers size={20} />,
+    link: 'https://time2due.com'
   },
   {
     title: 'Time2Farm',
@@ -103,7 +110,8 @@ const PROJECTS = [
     stack: ['React', 'Node.js', 'Supabase'],
     image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&q=80',
     type: 'Full Stack',
-    icon: <Layers size={20} />
+    icon: <Layers size={20} />,
+    link: 'https://Dakshaa.ksrct.ac.in'
   },
   {
     title: 'TrueSight AI',
@@ -212,10 +220,37 @@ export default function Projects() {
                        {project.description}
                     </p>
 
-                    <button className="group flex items-center gap-3 text-white font-semibold hover:text-accent transition-colors">
-                       <span>Explore Case Study</span>
-                       <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </button>
+                    <div className="flex flex-wrap gap-4">
+                      {project.links ? (
+                        project.links.map((link, idx) => (
+                           <a 
+                             key={idx}
+                             href={link.url}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="group flex items-center gap-2 text-white font-semibold hover:text-accent transition-colors"
+                           >
+                             <span>{link.label}</span>
+                             <ExternalLink size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                           </a>
+                        ))
+                      ) : project.link ? (
+                         <a 
+                           href={project.link} 
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="group flex items-center gap-2 text-white font-semibold hover:text-accent transition-colors"
+                         >
+                           <span>Visit Site</span>
+                           <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                         </a>
+                      ) : (
+                        <button className="group flex items-center gap-2 text-white font-semibold hover:text-accent transition-colors">
+                           <span>Explore Case Study</span>
+                           <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        </button>
+                      )}
+                    </div>
                  </div>
               </div>
             </motion.div>
