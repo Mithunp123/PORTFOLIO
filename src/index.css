@@ -6,6 +6,8 @@
   --color-dark-800: #0a0a0a;
   --color-dark-700: #121212;
   --color-dark-600: #1c1c1c;
+  --color-dark-500: #252525;
+  --color-dark-400: #333333;
   --color-accent: #6366f1;
   --color-accent-light: #a5b4fc;
   --color-cyan: #06b6d4;
@@ -27,7 +29,7 @@
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
   ::-webkit-scrollbar-track {
     @apply bg-dark-900;
@@ -47,6 +49,10 @@
     @apply backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
   }
 
+  .glass-light {
+    @apply backdrop-blur-lg bg-white/[0.02] border border-white/[0.06];
+  }
+
   /* Noise Overlay */
   .noise-bg {
     position: fixed;
@@ -59,9 +65,14 @@
     background: transparent url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0;
     background-repeat: repeat;
     animation: grain 8s steps(10) infinite;
-    opacity: 0.04;
+    opacity: 0.03;
     z-index: 50;
     pointer-events: none;
+  }
+
+  /* Magnetic hover glow */
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15), 0 0 60px rgba(99, 102, 241, 0.05);
   }
 }
 
@@ -82,4 +93,15 @@
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  33% { transform: translateY(-15px) translateX(10px); }
+  66% { transform: translateY(10px) translateX(-5px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-30px); }
 }
